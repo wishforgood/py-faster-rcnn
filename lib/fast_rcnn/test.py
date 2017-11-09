@@ -6,7 +6,8 @@
 # --------------------------------------------------------
 
 """Test a Fast R-CNN network on an imdb (image database)."""
-
+import sys
+sys.path.insert(0,"/home/zsy/PycharmProjects/py-faster-rcnn/caffe-fast-rcnn/python/")
 from fast_rcnn.config import cfg
 from fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv
 import argparse
