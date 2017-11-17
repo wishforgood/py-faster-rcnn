@@ -64,7 +64,6 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-
     print('Called with args:')
     print(args)
 
@@ -89,4 +88,5 @@ if __name__ == '__main__':
 
     with open(args.imdb_name, 'r') as f:
         imdb = json.load(f)
+    print(len(imdb['images']))
     get_net_outputs(net, imdb, max_per_image=args.max_per_image, vis=args.vis, img_prefix=args.img_prefix)

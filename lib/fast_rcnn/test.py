@@ -284,40 +284,50 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
                     all_boxes[j][i] = all_boxes[j][i][keep, :]
         _t['misc'].toc()
 
-        print 'im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
+        print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
               .format(i + 1, num_images, _t['im_detect'].average_time,
-                      _t['misc'].average_time)
+                      _t['misc'].average_time))
 
     det_file = os.path.join(output_dir, 'detections.pkl')
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
 
-    print 'Evaluating detections'
+    print('Evaluating detections')
     imdb.evaluate_detections(all_boxes, output_dir)
 
 
 def get_net_outputs(net, imdb, max_per_image=100, thresh=0.05, vis=False, img_prefix=None):
     """Test a Fast R-CNN network on an image database."""
     num_images = len(imdb['images'])
-    num_classes = len(imdb['classes'])
+    num_classes = 81
+    # num_classes = len(imdb['classes'])
     # all detections are collected into:
     #    all_boxes[cls][image] = N x 5 array of detections in
     #    (x1, y1, x2, y2, score)
     all_boxes = [[[] for _ in xrange(num_images)]
                  for _ in xrange(num_classes)]
-
+    print(os.path.dirname(__file__))
     output_dir = os.path.join(os.path.dirname(__file__), imdb['name'] + '_detection')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     # timers
     _t = {'im_detect' : Timer(), 'misc' : Timer()}
-
+    import json
+    with open(os.path.join(os.path.dirname(__file__), 'image_data.json'), 'r') as f:
+        image_name_dict = json.load(f)
+    print(len(image_name_dict))
     for i in xrange(num_images):
+    # for i in xrange(4):
         # filter out any ground truth boxes
         box_proposals = None
-        im = cv2.imread(os.path.join(img_prefix, imdb['images'][i]))
+        image_name_info = image_name_dict[i]
+        image_name = str(image_name_info['id']) + '.jpg'
+        im = cv2.imread(os.path.join(img_prefix, image_name))
         _t['im_detect'].tic()
-        scores, boxes = im_detect(net, im, box_proposals)
+        if im is not None:
+            scores, boxes = im_detect(net, im, box_proposals)
+        else:
+            print(imdb['images'][i])
         _t['im_detect'].toc()
 
         _t['misc'].tic()
@@ -345,10 +355,10 @@ def get_net_outputs(net, imdb, max_per_image=100, thresh=0.05, vis=False, img_pr
                     all_boxes[j][i] = all_boxes[j][i][keep, :]
         _t['misc'].toc()
 
-        print 'im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
+        print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
               .format(i + 1, num_images, _t['im_detect'].average_time,
-                      _t['misc'].average_time)
+                      _t['misc'].average_time))
 
-    det_file = os.path.join(output_dir, 'detections.pkl')
-    with open(det_file, 'wb') as f:
-        cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
+    det_file = os.path.join(output_dir, 'detections.json')
+    with open(det_file, 'w') as f:
+        json.dump(all_boxes.tolist(), f)
